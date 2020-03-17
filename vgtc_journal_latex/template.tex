@@ -54,6 +54,7 @@
 \usepackage{cite}                      % needed to automatically sort the references
 \usepackage{tabu}                      % only used for the table example
 \usepackage{booktabs}                  % only used for the table example
+\usepackage{verbatim}
 %% We encourage the use of mathptmx for consistent usage of times font
 %% throughout the proceedings. However, if you encounter conflicts
 %% with other math-related packages, you may want to disable it.
@@ -83,12 +84,12 @@
 \vgtcpapertype{please specify}
 
 %% Paper title.
-\title{Global Illumination for Fun and Profit}
+\title{Isosurface Rendering via Deep Geometric Properties Synthesis}
 
 %% This is how authors are specified in the journal style
 
 %% indicate IEEE Member or Student Member in form indicated below
-\author{Roy G. Biv, Ed Grimley, \textit{Member, IEEE}, and Martha Stewart}
+\author{Neng Shi, Jingyi Shen, and Haoyu Li}
 \authorfooter{
 %% insert punctuation at end of each item
 \item
@@ -105,18 +106,7 @@
 %\shortauthortitle{Firstauthor \MakeLowercase{\textit{et al.}}: Paper Title}
 
 %% Abstract section.
-\abstract{Duis autem vel eum iriure dolor in hendrerit in vulputate
-velit esse molestie consequat, vel illum dolore eu feugiat nulla
-facilisis at vero eros et accumsan et iusto odio dignissim qui blandit
-praesent luptatum zzril delenit augue duis dolore te feugait nulla
-facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
-sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna
-aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper
-suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem
-vel eum iriure dolor in hendrerit in vulputate velit esse molestie
-consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et
-accumsan et iusto odio dignissim qui blandit praesent luptatum zzril
-delenit augue duis dolore te feugait nulla facilisi.%
+\abstract{
 } % end of abstract
 
 %% Keywords that describe your work. Will show as 'Index Terms' in journal
@@ -166,7 +156,11 @@ delenit augue duis dolore te feugait nulla facilisi.%
 \maketitle
 
 %% \section{Introduction} %for journal use above \firstsection{..} instead
-This template is for papers of VGTC-sponsored conferences such as IEEE VIS, IEEE VR, and ISMAR which are published as special issues of TVCG. The template does not contain the respective dates of the conference/journal issue, these will be entered by IEEE as part of the publication production process. Therefore, \textbf{please leave the copyright statement at the bottom-left of this first page untouched}.
+Ensemble simulation \cite{wang2018visualization} is important in scientific visualization. For example, in meteorology, meteorologists often use numerical weather forecast models to generate aggregated simulation data. By disturbing the initial conditions or use different prediction model formulas, the collective simulation data usually consists of a series of data members. For Ensemble data \cite{ahrens2014situ, ahrens2014image}, its large number of data members and a high degree of complexity lead to two problems: (1) a long time for scientists to run the simulation and see the results and (2) I/O bottleneck for storing the raw data. Both problems can influence scientists to effectively analyze and evaluate data. In-situ visualization \cite{bauer2016situ, ma2009situ}, in which the calculation results are not stored but directly processed into images at the computing nodes, can greatly reduce the amount of data stored, transmitted, and post-processed. However, when the raw data is not available, the flexibility of post-hoc analysis would be constrained.  
+
+Recently, with the development of deep generative models, people can generate high-quality images given random noise \cite{goodfellow2014generative} or some conditional information \cite{mirza2014conditional}. Specifically, in ensemble visualization, He et al. \cite{he2019insitunet} proposed InSituNet, which is a deep learning-based surrogate model to support parameter space exploration for ensemble simulations that are visualized in situ. InSituNet can generate images of high accuracy, and fidelity can be generated. However, it has a limitation that it only allows users to switch among several predefined visual mappings (e.g., transfer functions). The main reason is covering such a joint space of all possible simulation and visualization parameters requires a large number of training images.
+
+This study will focus on isosurface, which needs only one scalar value (isovalue) to encode. Our final goal is to train a deep network that can generate geometric properties (e.g. depth, normal maps) of an isosurface given simulation, isosurface, and view parameters. After getting the geometric properties of an isosurface, by traditional computer graphics techniques, for example, deferred shading and depth peeling \cite{zolt2003peel}, we can get isosurface or volume rendering results with different shading effects. 
 
 \section{Using the Style Template}
 
