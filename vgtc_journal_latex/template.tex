@@ -166,15 +166,25 @@ Our work is closely related to InSituNet \cite{he2019insitunet}, which focus on 
 
 \section{Isosurface Learning}
 
-Our method would consist of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we will use volumes available online in large volume collections. Then, given an isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to get corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a set of networks, each of which is used to learn the mapping from input parameters to one geometric property. We will consider different state-of-the-art learning techniques for deep generative models, including model structure and loss function design etc. Third, we will do screen space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects. 
+Our method would consist of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we will use volumes available online in large volume collections. Then, given an isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to get corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a set of networks, each of which is used to learn the mapping from input parameters to one geometric property. We will consider different state-of-the-art learning techniques for deep generative models, including the model structure and loss function design, etc. Third, we will do screen-space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects. 
 
 \subsection{Input Data}
+Given an isovalue, we implement volumetric ray-casting to get corresponding geometric properties of an isosurface. We let the ray advance through the volume until reaching a sample whose intensity is greater than or equal to the threshold value, meaning that we hit the isosurface. Once we find a point belonging to the isosurface, instead of directly apply an illumination model to perform shading, we apply the geometry pass in deferred shading \cite{deering1988triangle}. We store all kinds of geometric properties in a collection of textures called the G-buffer. In our study, these geometric properties are maps of size $ H \times W $,  including:
 
+\begin{itemize}
+\item $M \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After network prediction, each pixel is considered foreground if its predicted probability in the mask map is above 50\%.  
 
+\item $N \in [-1, +1] ^ {3 \times H \times W}$: The normal map with the normal vectors in view space.
 
+\item $P \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in local space. We choose local space position because it already normalized within the range $[0, 1]$.
 
+\item $D \in [-1, +1] ^ {H \times W}$: The depth map. 
 
-\section{Example Section}
+\end{itemize}
+
+\subsection{Network Training}
+
+\section{}
 
 Lorem\marginpar{\small You can use the margins for comments while editing the submission, but please remove the marginpar comments for submission.} ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
 nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
