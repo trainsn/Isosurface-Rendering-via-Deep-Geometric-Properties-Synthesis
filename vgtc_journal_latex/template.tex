@@ -93,12 +93,7 @@
 \authorfooter{
 %% insert punctuation at end of each item
 \item
- Roy G. Biv is with Starbucks Research. E-mail: roy.g.biv@aol.com.
-\item
- Ed Grimley is with Grimley Widgets, Inc.. E-mail: ed.grimley@aol.com.
-\item
- Martha Stewart is with Martha Stewart Enterprises at Microsoft
- Research. E-mail: martha.stewart@marthastewart.com.
+ Neng Shi, Jingyi Shen, and Haoyu Li are with the Department of Computer Science and Engineering, The Ohio State University. E-mail: {shi.1337, shen.1250, li.8460}@osu.edu.
 }
 
 %other entries to be set up for journal
@@ -124,15 +119,9 @@
 }
 
 %% Uncomment below to include a teaser figure.
-\teaser{
-  \centering
-  \includegraphics[width=\linewidth]{CypressView}
-  \caption{In the Clouds: Vancouver from Cypress Mountain. Note that the teaser may not be wider than the abstract block.}
-	\label{fig:teaser}
-}
 
 %% Uncomment below to disable the manuscript note
-%\renewcommand{\manuscriptnotetxt}{}
+\renewcommand{\manuscriptnotetxt}{}
 
 %% Copyright space is enabled by default as required by guidelines.
 %% It is disabled by the 'review' option or via the following command:
@@ -160,11 +149,11 @@ Ensemble simulation \cite{wang2018visualization} is important in scientific visu
 
 Recently, with the development of deep generative models, people can generate high-quality images given random noise \cite{goodfellow2014generative} or some semantic prior information \cite{mirza2014conditional}. Specifically, in ensemble visualization, He et al. \cite{he2019insitunet} proposed InSituNet, which is a deep learning-based surrogate model to support parameter space exploration for ensemble simulations that are visualized in situ. InSituNet can generate images of high accuracy, and fidelity. However, it has a limitation that it only allows users to switch among several predefined visual mappings (e.g., transfer functions). The main reason is covering such a joint space of all possible simulation and visualization parameters requires a large number of training images.
 
-This study tries to propose a solution for the limitation, focusing on isosurface, which needs only one scalar value (isovalue) to encode. Our final goal is to train a deep network that can generate geometric properties (e.g., depth, normal maps) of an isosurface given simulation, isosurface, and view parameters. After getting the geometric properties of an isosurface, by traditional computer graphics techniques, for example, deferred shading and depth peeling \cite{zolt2003depthpeel}, we can get isosurface or volume rendering results with different shading effects. 
+This study tries to propose a solution for the limitation, focusing on isosurface, which needs only one scalar value (isovalue) to encode. Our final goal is to train a deep network that can generate geometric properties (e.g., depth, normal maps) of an isosurface given simulation, isosurface, and view parameters. After getting the geometric properties of an isosurface, by traditional computer graphics techniques, for example, deferred shading \cite{deering1988triangle} and depth peeling \cite{zolt2003depthpeel}, we can get isosurface or volume rendering results with different shading effects. Currently, due to the time limitation, we may only focus on isosurface and view parameters, without considering the simulation parameter.  
 
 \section{Related Work}
 
-In this section, we review related work in deep generative models for scientific visualization and 
+In this section, we review related work in deep generative models for scientific visualization.
 
 \subsection{Deep Generative Models for Scientific Visualization}
 
@@ -175,62 +164,15 @@ Scientific visualization researchers increasingly use deep generative models to 
 Our work is closely related to InSituNet \cite{he2019insitunet}, which focus on parameter space exploration. The difference between our work and InSituNet is that we focus on synthesize the  geometric properties (e.g., depth,normal maps) of an isosurface, rather than visualization images. This idea is similar with the super-resolution work by Weiss et al. \cite{weiss2019volumetric}. 
 
 
+\section{Isosurface Learning}
 
-\begin{itemize}
-\item If you receive compilation errors along the lines of ``\texttt{Package ifpdf Error: Name clash, \textbackslash ifpdf is already defined}'' then please add a new line ``\texttt{\textbackslash let\textbackslash ifpdf\textbackslash relax}'' right after the ``\texttt{\textbackslash documentclass[journal]\{vgtc\}}'' call. Note that your error is due to packages you use that define ``\texttt{\textbackslash ifpdf}'' which is obsolete (the result is that \texttt{\textbackslash ifpdf} is defined twice); these packages should be changed to use ifpdf package instead.
-\item Note that each author's affiliations have to be provided in the author footer on the bottom-left corner of the first page. It is permitted to merge two or more people from the same institution as long as they are shown in the same order as in the overall author sequence on the top of the first page. For example, if authors A, B, C, and D are from institutions 1, 2, 1, and 2, respectively, then it is ok to use 2 bullets as follows:
-\begin{itemize}
-\item A and C are with Institution 1. E-mail: \{a\,$|$\,c\}@i1.com\,.
-\item B and D are with Institution 2. E-mail: \{b\,$|$\,d\}@i2.org\,.
-\end{itemize}
-\item The style uses the hyperref package, thus turns references into internal links. We thus recommend to make use of the ``\texttt{\textbackslash autoref\{reference\}}'' call (instead of ``\texttt{Figure\~{}\textbackslash ref\{reference\}}'' or similar) since ``\texttt{\textbackslash autoref\{reference\}}'' turns the entire reference into an internal link, not just the number. Examples: \autoref{fig:sample} and \autoref{tab:vis_papers}.
-\item The style automatically looks for image files with the correct extension (eps for regular \LaTeX; pdf, png, and jpg for pdf\LaTeX), in a set of given subfolders (figures/, pictures/, images/). It is thus sufficient to use ``\texttt{\textbackslash includegraphics\{CypressView\}}'' (instead of ``\texttt{\textbackslash includegraphics\{pictures/CypressView.jpg\}}'').
-\item For adding hyperlinks and DOIs to the list of references, you can use ``\texttt{\textbackslash bibliographystyle\{abbrv-doi-hyperref-narrow\}}'' (instead of ``\texttt{\textbackslash bibliographystyle\{abbrv\}}''). It uses the doi and url fields in a bib\TeX\ entry and turns the entire reference into a link, giving priority to the doi. The doi can be entered with or without the ``\texttt{http://dx.doi.org/}'' url part. See the examples in the bib\TeX\ file and the bibliography at the end of this template.\\[1em]
-\textbf{Note 1:} occasionally (for some \LaTeX\ distributions) this hyper-linked bib\TeX\ style may lead to \textbf{compilation errors} (``\texttt{pdfendlink ended up in different nesting level ...}'') if a reference entry is broken across two pages (due to a bug in hyperref). In this case make sure you have the latest version of the hyperref package (i.\,e., update your \LaTeX\ installation/packages) or, alternatively, revert back to ``\texttt{\textbackslash bibliographystyle\{abbrv-doi-narrow\}}'' (at the expense of removing hyperlinks from the bibliography) and try ``\texttt{\textbackslash bibliographystyle\{abbrv-doi-hyperref-narrow\}}'' again after some more editing.\\[1em]
-\textbf{Note 2:} the ``\texttt{-narrow}'' versions of the bibliography style use the font ``PTSansNarrow-TLF'' for typesetting the DOIs in a compact way. This font needs to be available on your \LaTeX\ system. It is part of the \href{https://www.ctan.org/pkg/paratype}{``paratype'' package}, and many distributions (such as MikTeX) have it automatically installed. If you do not have this package yet and want to use a ``\texttt{-narrow}'' bibliography style then use your \LaTeX\ system's package installer to add it. If this is not possible you can also revert to the respective bibliography styles without the ``\texttt{-narrow}'' in the file name.\\[1em]
-DVI-based processes to compile the template apparently cannot handle the different font so, by default, the template file uses the \texttt{abbrv-doi} bibliography style but the compiled PDF shows you the effect of the \texttt{abbrv-doi-hyperref-narrow} style.
-\end{itemize}
+Our method would consist of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we will use volumes available online in large volume collections. Then, given an isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to get corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a set of networks, each of which is used to learn the mapping from input parameters to one geometric property. We will consider different state-of-the-art learning techniques for deep generative models, including model structure and loss function design etc. Third, we will do screen space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects. 
 
-\section{Bibliography Instructions}
+\subsection{Input Data}
 
-\begin{itemize}
-\item Sort all bibliographic entries alphabetically but the last name of the first author. This \LaTeX/bib\TeX\ template takes care of this sorting automatically.
-\item Merge multiple references into one; e.\,g., use \cite{Max:1995:OMF,Kitware:2003} (not \cite{Kitware:2003}\cite{Max:1995:OMF}). Within each set of multiple references, the references should be sorted in ascending order. This \LaTeX/bib\TeX\ template takes care of both the merging and the sorting automatically.
-\item Verify all data obtained from digital libraries, even ACM's DL and IEEE Xplore  etc.\ are sometimes wrong or incomplete.
-\item Do not trust bibliographic data from other services such as Mendeley.com, Google Scholar, or similar; these are even more likely to be incorrect or incomplete.
-\item Articles in journal---items to include:
-  \begin{itemize}
-  \item author names
-	\item title
-	\item journal name
-	\item year
-	\item volume
-	\item number
-	\item month of publication as variable name (i.\,e., \{jan\} for January, etc.; month ranges using \{jan \#\{/\}\# feb\} or \{jan \#\{-{}-\}\# feb\})
-  \end{itemize}
-\item use journal names in proper style: correct: ``IEEE Transactions on Visualization and Computer Graphics'', incorrect: ``Visualization and Computer Graphics, IEEE Transactions on''
-\item Papers in proceedings---items to include:
-  \begin{itemize}
-  \item author names
-	\item title
-	\item abbreviated proceedings name: e.\,g., ``Proc.\textbackslash{} CONF\_ACRONYNM'' without the year; example: ``Proc.\textbackslash{} CHI'', ``Proc.\textbackslash{} 3DUI'', ``Proc.\textbackslash{} Eurographics'', ``Proc.\textbackslash{} EuroVis''
-	\item year
-	\item publisher
-	\item town with country of publisher (the town can be abbreviated for well-known towns such as New York or Berlin)
-  \end{itemize}
-\item article/paper title convention: refrain from using curly brackets, except for acronyms/proper names/words following dashes/question marks etc.; example:
-\begin{itemize}
-	\item paper ``Marching Cubes: A High Resolution 3D Surface Construction Algorithm''
-	\item should be entered as ``\{M\}arching \{C\}ubes: A High Resolution \{3D\} Surface Construction Algorithm'' or  ``\{M\}arching \{C\}ubes: A high resolution \{3D\} surface construction algorithm''
-	\item will be typeset as ``Marching Cubes: A high resolution 3D surface construction algorithm''
-\end{itemize}
-\item for all entries
-\begin{itemize}
-	\item DOI can be entered in the DOI field as plain DOI number or as DOI url; alternative: a url in the URL field
-	\item provide full page ranges AA-{}-BB
-\end{itemize}
-\item when citing references, do not use the reference as a sentence object; e.\,g., wrong: ``In \cite{Lorensen:1987:MCA} the authors describe \dots'', correct: ``Lorensen and Cline \cite{Lorensen:1987:MCA} describe \dots''
-\end{itemize}
+
+
+
 
 \section{Example Section}
 
