@@ -101,12 +101,12 @@
 %\shortauthortitle{Firstauthor \MakeLowercase{\textit{et al.}}: Paper Title}
 
 %% Abstract section.
-\abstract{
+\abstract{ InSituNet \cite{he2019insitunet} is helpful in flexible exploration of parameter space for large-scale ensemble simulations. However, it has a limitation that it only supports several predefined visual mappings. We propose a solution, focusing on synthesizing the geometry properties of an isosurface via deep generative networks. After getting the predicted geometry properties, by traditional computer graphics techniques, we can get isosurface or volume rendering results with different shading effects.  
 } % end of abstract
 
 %% Keywords that describe your work. Will show as 'Index Terms' in journal
 %% please capitalize first letter and insert punctuation after last keyword
-\keywords{Radiosity, global illumination, constant time}
+\keywords{Deep learning, generative networks, volume rendering}
 
 %% ACM Computing Classification System (CCS). 
 %% See <http://www.acm.org/class/1998/> for details.
@@ -145,7 +145,7 @@
 \maketitle
 
 %% \section{Introduction} %for journal use above \firstsection{..} instead
-Ensemble simulation \cite{wang2018visualization} is important in scientific visualization. For example, in meteorology, meteorologists often use numerical weather forecast models to generate aggregated simulation data. By disturbing the initial conditions or use different prediction model formulas, the collective simulation data usually consists of a series of data members. For Ensemble data \cite{ahrens2014situ, ahrens2014image}, its large number of data members and a high degree of complexity lead to two problems: (1) a long time for scientists to run the simulation and see the results and (2) I/O bottleneck for storing the raw data. Both problems can influence scientists to effectively analyze and evaluate data. In-situ visualization \cite{bauer2016situ, ma2009situ}, in which the calculation results are not stored but directly processed into images at the computing nodes, can greatly reduce the amount of data stored, transmitted, and post-processed. However, when the raw data is not available, the flexibility of post-hoc analysis would be constrained.  
+Ensemble simulation \cite{wang2018visualization} is important in scientific visualization. For example, in meteorology, meteorologists often use numerical weather forecast models to generate aggregated simulation data. By disturbing the initial conditions or use different prediction model formulas, the collective simulation data usually consist of a series of data members. For Ensemble data \cite{ahrens2014situ, ahrens2014image}, its large number of data members and a high degree of complexity lead to two problems: (1) a long time for scientists to run the simulation and see the results and (2) I/O bottleneck for storing the raw data. Both problems can influence scientists to effectively analyze and evaluate data. In-situ visualization \cite{bauer2016situ, ma2009situ}, in which the calculation results are not stored but directly processed into images at the computing nodes, can greatly reduce the amount of data stored, transmitted, and post-processed. However, when the raw data is not available, the flexibility of post-hoc analysis would be constrained.  
 
 Recently, with the development of deep generative models, people can generate high-quality images given random noise \cite{goodfellow2014generative} or some semantic prior information \cite{mirza2014conditional}. Specifically, in ensemble visualization, He et al. \cite{he2019insitunet} proposed InSituNet, which is a deep learning-based surrogate model to support parameter space exploration for ensemble simulations that are visualized in situ. InSituNet can generate images of high accuracy, and fidelity. However, it has a limitation that it only allows users to switch among several predefined visual mappings (e.g., transfer functions). The main reason is covering such a joint space of all possible simulation and visualization parameters requires a large number of training images.
 
@@ -157,9 +157,9 @@ In this section, we review related work in deep generative models for scientific
 
 \subsection{Deep Generative Models for Scientific Visualization}
 
-Deep generative models (e.g., PixelRNN \cite{oord2016pixel}, PixelCNN \cite{van2016conditional}, VAE \cite{kingma2013auto}, GAN \cite{goodfellow2014generative}, etc.) have evolved in recent years and have achieved exciting accomplishment. Given the training data, generative models can generate new samples from the same distribution. Among them, Generative adversarial networks \cite{goodfellow2014generative} (GANs) represents the highest achievement, and has been used in various applications, including image generation \cite{karras2017progressive, jin2017towards}, image-to-image translation \cite{isola2017image, zhu2017unpaired}, text-to-image translation \cite{zhang2017stackgan, reed2016generative}, super resolution \cite{ledig2017photo}, and 3D object generation \cite{wu2016learning, gadelha20173d}. 
+Deep generative models (e.g., PixelRNN \cite{oord2016pixel}, PixelCNN \cite{van2016conditional}, VAE \cite{kingma2013auto}, GAN \cite{goodfellow2014generative}, etc.) have evolved in recent years and have achieved exciting accomplishment. Given the training data, generative models can generate new samples from the same distribution. Among them, Generative adversarial networks \cite{goodfellow2014generative} (GANs) represent the highest achievement, and has been used in various applications, including image generation \cite{karras2017progressive, jin2017towards}, image-to-image translation \cite{isola2017image, zhu2017unpaired}, text-to-image translation \cite{zhang2017stackgan, reed2016generative}, super resolution \cite{ledig2017photo}, and 3D object generation \cite{wu2016learning, gadelha20173d}. 
 
-Scientific visualization researchers increasingly use deep generative models to synthesize the visualization results. Berger et al. \cite{berger2018generative} train a generative model to synthesize volume rendering images, conditioned on viewpoints and transfer functions. He et al. \cite{he2019insitunet} proposed InSituNet, a deep learning-based surrogate model to support parameter space exploration for ensemble simulations that are visualized in situ. Weiss et al. \cite{weiss2019volumetric} train a super-resolution network that can upscale a low-resolution sampling of isosurface depths and normals to a high resolution one. Hong et al. \cite{hong2019dnn} implement a deep neural network that accepts original images with goal rendering effect and new viewing parameters as the inputs and synthesizes new images. Some other researchers focus on directly predict 3D data. To address a spatial super-resolution problem, Xie et al. \cite{xie2018tempogan} propose a temporally coherent generative model to generate high-resolution fluid flows. Han et al. \cite{han2019tsr} achieve temporal super-resolution of time-varying data by a recurrent generative network (RGN, a combination of RNN and GAN).
+Scientific visualization researchers increasingly use deep generative models to synthesize the visualization results. Berger et al. \cite{berger2018generative} train a generative model to synthesize volume rendering images, conditioned on viewpoints and transfer functions. He et al. \cite{he2019insitunet} proposed InSituNet, a deep learning-based surrogate model to support parameter space exploration for ensemble simulations that are visualized in situ. Weiss et al. \cite{weiss2019volumetric} train a super-resolution network that can upscale a low-resolution sampling of isosurface depths and normals to a high resolution one. Hong et al. \cite{hong2019dnn} implement a deep neural network that accepts original images with goal rendering effect and new viewing parameters as the inputs and synthesizes new images. Some other researchers focus on directly synthesize 3D data. To address a spatial super-resolution problem, Xie et al. \cite{xie2018tempogan} propose a temporally coherent generative model to generate high-resolution fluid flows. Han et al. \cite{han2019tsr} achieve temporal super-resolution of time-varying data by a recurrent generative network (RGN, a combination of RNN and GAN).
 
 Our work is closely related to InSituNet \cite{he2019insitunet}, which focus on parameter space exploration. The difference between our work and InSituNet is that we focus on synthesize the  geometric properties (e.g., depth,normal maps) of an isosurface, rather than visualization images. This idea is similar with the super-resolution work by Weiss et al. \cite{weiss2019volumetric}. 
 
@@ -172,11 +172,11 @@ Our method will consist of three major parts. The first part is about the traini
 Given an isovalue, we implement volumetric ray-casting to get corresponding geometric properties of an isosurface. We let the ray advance through the volume until reaching a sample whose intensity is greater than or equal to the threshold value, meaning that we hit the isosurface. Once we find a point belonging to the isosurface, instead of directly applying an illumination model to perform shading, we use the geometry pass in deferred shading \cite{deering1988triangle}. We store all kinds of geometric properties in a collection of textures called the G-buffer. In our study, these geometric properties are maps of size $ H \times W $,  including:
 
 \begin{itemize}
-\item $M \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After network prediction, each pixel is considered foreground if its predicted probability in the mask map is above 50\%.  
+\item $M \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After the network prediction, each pixel is considered foreground if its predicted probability in the mask map is above 50\%.  
 
 \item $N \in [-1, +1] ^ {3 \times H \times W}$: The normal map with the normal vectors in view space.
 
-\item $P \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in local space. We choose local space position because it already normalized within the range $[0, 1]$.
+\item $P \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in local space. We choose the local space position because it is already normalized within the range $[0, 1]$.
 
 \item $D \in [-1, +1] ^ {H \times W}$: The depth map. 
 
@@ -193,7 +193,7 @@ We will build the generator following InSituNet proposed by He et al. \cite{he20
 We will attempt to estimate the network parameters to minimize a loss function. Our loss function may consist of following terms: (a) differences between ground-truth and predicted geometric properties (normal, position and depth map),  (b) disagreement between ground-truth and predicted foreground masks, (c) large-scale structural difference between the predicted and training maps.
 
 \paragraph{Normal, position and depth loss}
-We will first consider the difference between predicted geometric properties and the ground-truth. There is 3 options for the loss: (a) Spatial loss. We will use $l1$ distance for each geometric property, which will only be calculated for pixels marked as foreground in the ground-truth. (b) Perceptual Loss based on VGGNet \cite{simonyan2014very}. (c) Adversarial loss. It is trying to measure the difference between two image distributions. We will train a discriminator along with the previously mentioned generator to differentiate the generated geometric properties with the ground truth. Our discriminator will also be designed following InSituNet \cite{he2019insitunet}. 
+We will first consider the difference between predicted geometric properties and the ground-truth. There are 3 options for the loss: (i) Spatial loss. We will use $l1$ distance for each geometric property, which will only be calculated for pixels marked as foreground in the ground-truth. $l2$ distance will be another option, but this tended to generate less sharp maps. (ii) Perceptual Loss based on VGGNet \cite{simonyan2014very}. (iii) Adversarial loss. It is trying to measure the difference between two image distributions. We will train a discriminator along with the previously mentioned generator to differentiate the generated geometric properties with the ground truth. Our discriminator will also be designed following InSituNet \cite{he2019insitunet}. 
 
 \paragraph{Mask loss}
 We may use $l1$ distance or cross-entropy function commonly used in classification to penalize the difference between predicted and ground-truth foreground labeling.
@@ -202,7 +202,7 @@ We may use $l1$ distance or cross-entropy function commonly used in classificati
 We may also penalize overall structural information with the help of adversarial loss. While training a single network, instead of adding adversarial loss term for each map, we will concatenate all the map channels and feed them into the discriminator. We think, to some extent, it can help to make different predicted maps fit each other.   
 
 \subsection{screen-space shading}
-We can use render a screen-filled quad and calculate the scene's lighting for each fragment using the geometrical information predicted by the generator. In this way, we can change the lighting conditions to better visualize the object we are interested in. We can also implement some advanced lighting effects. For example, by comparing the depth map predicted from the lighting viewpoint and camera viewpoint, we can perform shadow mapping \cite{williams1978casting}. Another plan for us is to apply volumetric depth-peeling \cite{zolt2003depthpeel},  rendering interior and exterior isosurfaces and blending them to get volume rendering results. Then we can use different transfer functions to get different visual effects.  
+We can render a screen-filled quad and calculate the scene's lighting for each fragment using the geometrical information predicted by the generator. In this way, we can change the lighting conditions to better visualize the feature we are interested in. We can also implement some advanced lighting effects. For example, by comparing the depth map predicted from the lighting viewpoint and camera viewpoint, we can perform shadow mapping \cite{williams1978casting}. Another plan for us is to apply volumetric depth-peeling \cite{zolt2003depthpeel},  rendering interior and exterior isosurfaces and blending them to get volume rendering results. Then we can use different transfer functions to get different visual effects.  
 
 
 \section{Project milestone}
@@ -212,8 +212,8 @@ Here, we decompose our projects into several tasks and provide a draft for how t
 \begin{itemize}
 \item Ray casting based training data generation: Done
 \item Train networks and tune the hyper-parameters based on isosurface rendering results: In progress, by 4/7.
-\item Finish shadow mapping and Depth-Peeling for volume rendering: by 4/7
-\item write final paper and prepare presentation: by 4/21. 
+\item Finish shadow mapping and depth-peeling for volume rendering: by 4/7
+\item Write the final paper and prepare the presentation: by 4/21. 
 
 \end{itemize}
 
