@@ -145,7 +145,7 @@
 \maketitle
 
 %% \section{Introduction} %for journal use above \firstsection{..} instead
-Ensemble simulation \cite{wang2018visualization} is important in scientific visualization. For example, in meteorology, meteorologists often use numerical weather forecast models to generate aggregated simulation data. By disturbing the initial conditions or use different prediction model formulas, the collective simulation data usually consist of a series of data members. For Ensemble data \cite{ahrens2014situ, ahrens2014image}, its large number of data members and a high degree of complexity lead to two problems: (1) a long time for scientists to run the simulation and see the results and (2) I/O bottleneck for storing the raw data. Both problems can influence scientists to effectively analyze and evaluate data. In-situ visualization \cite{bauer2016situ, ma2009situ}, in which the calculation results are not stored but directly processed into images at the computing nodes, can greatly reduce the amount of data stored, transmitted, and post-processed. However, when the raw data is not available, the flexibility of post-hoc analysis would be constrained.  
+Ensemble simulation \cite{wang2018visualization} is important in scientific visualization. For example, in meteorology, meteorologists often use numerical weather forecast models to generate aggregated simulation data. By disturbing the initial conditions or use different prediction model formulas, the collective simulation data usually consist of a series of data members. For Ensemble data \cite{ahrens2014situ, ahrens2014image}, its large number of data members and a high degree of complexity lead to two problems: (1) a long time for scientists to run the simulation and see the results, (2) I/O bottleneck for storing the raw data. Both problems can influence scientists to effectively analyze and evaluate data. In-situ visualization \cite{bauer2016situ, ma2009situ}, in which the calculation results are not stored but directly processed into images at the computing nodes, can greatly reduce the amount of data stored, transmitted, and post-processed. However, when the raw data is not available, the flexibility of post-hoc analysis would be constrained.  
 
 Recently, with the development of deep generative models, people can generate high-quality images given random noise \cite{goodfellow2014generative} or some semantic prior information \cite{mirza2014conditional}. Specifically, in ensemble visualization, He et al. \cite{he2019insitunet} proposed InSituNet, which is a deep learning-based surrogate model to support parameter space exploration for ensemble simulations that are visualized in situ. InSituNet can generate images of high accuracy, and fidelity. However, it has a limitation that it only allows users to switch among several predefined visual mappings (e.g., transfer functions). The main reason is covering such a joint space of all possible simulation and visualization parameters requires a large number of training images.
 
@@ -172,17 +172,13 @@ Our method will consist of three major parts. The first part is about the traini
 Given an isovalue, we implement volumetric ray-casting to get corresponding geometric properties of an isosurface. We let the ray advance through the volume until reaching a sample whose intensity is greater than or equal to the threshold value, meaning that we hit the isosurface. Once we find a point belonging to the isosurface, instead of directly applying an illumination model to perform shading, we use the geometry pass in deferred shading \cite{deering1988triangle}. We store all kinds of geometric properties in a collection of textures called the G-buffer. In our study, these geometric properties are maps of size $ H \times W $,  including:
 
 \begin{itemize}
-\item $M \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After the network prediction, each pixel is considered foreground if its predicted probability in the mask map is above 50\%.  
+\item $M \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After the network training, it will learn a continuous value, and we will use it to blend the final color over the background.  
 
 \item $N \in [-1, +1] ^ {3 \times H \times W}$: The normal map with the normal vectors in view space.
 
 \item $P \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in local space. We choose the local space position because it is already normalized within the range $[0, 1]$.
 
-\item $D \in [-1, +1] ^ {H \times W}$: The depth map. 
-
 \end{itemize}
-
-We will consider adding more features such as ambient occlusion to make our study more powerful.  
 
 \subsection{Network Training}
 
