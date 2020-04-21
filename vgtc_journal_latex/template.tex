@@ -55,6 +55,7 @@
 \usepackage{tabu}                      % only used for the table example
 \usepackage{booktabs}                  % only used for the table example
 \usepackage{verbatim}
+\usepackage{amsfonts}
 %% We encourage the use of mathptmx for consistent usage of times font
 %% throughout the proceedings. However, if you encounter conflicts
 %% with other math-related packages, you may want to disable it.
@@ -163,27 +164,42 @@ Scientific visualization researchers increasingly use deep generative models to 
 
 Our work is closely related to InSituNet \cite{he2019insitunet}, which focus on parameter space exploration. The difference between our work and InSituNet is that we focus on synthesize the  geometric properties (e.g., depth,normal maps) of an isosurface, rather than visualization images. This idea is similar with the super-resolution work by Weiss et al. \cite{weiss2019volumetric}. 
 
-
 \section{Isosurface Learning}
 
-Our method will consist of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we will use volumes available online in large volume collections. Then, given an isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to get corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we will train a single or a set of networks to learn the mapping from input parameters to geometric properties. We will consider different state-of-the-art learning techniques for deep generative models, including the model structure and loss function design, etc. Third, we will do screen-space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects. 
+\begin{figure*}
+  \centering
+  \includegraphics[width=\linewidth]{overview}
+  \caption{The Deep Geometric Properties Synthesis Pipeline. For the input volume (vortex in this example), we apply the volumetric ray-casting algorithm with the isovalue and viewpoint as input parameters to generate the training datasets (corresponding geometric properties of an isosurface). The regressor training process takes the input parameters to predict the corresponding geometric properties of an isosurface, and the parameters of the regressor are optimized by minimizing the difference between the predicted geometric properties and the ground truth. Finally, the trained regressor can be used to take new input parameters and predict the corresponding geometric properties of an isosurface. On top of them, deferred shading can be used to generate the final visualization image. }
+	\label{fig:overview}
+\end{figure*}
+
+As shown in Fig.~\ref{fig:overview}, our deep geometric properties synthesis pipeline consists of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we use volume data available online in large volume collections. Then, given the isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to generate corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a regressor $R_w$ to learn the mapping from input parameters to geometric properties. The loss function is used to penalize the difference between the predicted geometric properties and the ground truth geometric properties. We investigate networks trained with different loss functions and analyze the synthesis quality of these networks on the new input parameters that the network has never seen before during the training phase. Third, we will do screen-space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects.
 
 \subsection{Input Data}
 Given an isovalue, we implement volumetric ray-casting to get corresponding geometric properties of an isosurface. We let the ray advance through the volume until reaching a sample whose intensity is greater than or equal to the threshold value, meaning that we hit the isosurface. Once we find a point belonging to the isosurface, instead of directly applying an illumination model to perform shading, we use the geometry pass in deferred shading \cite{deering1988triangle}. We store all kinds of geometric properties in a collection of textures called the G-buffer. In our study, these geometric properties are maps of size $ H \times W $,  including:
 
 \begin{itemize}
-\item $M \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After the network training, it will learn a continuous value, and we will use it to blend the final color over the background.  
+\item $M^{GT} \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After the network training, it will learn a continuous value, and we will use it to blend the final color over the background.  
 
-\item $N \in [-1, +1] ^ {3 \times H \times W}$: The normal map with the normal vectors in view space.
+\item $N^{GT} \in [-1, +1] ^ {3 \times H \times W}$: The normal map with the normal vectors in view space.
 
-\item $P \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in local space. We choose the local space position because it is already normalized within the range $[0, 1]$.
+\item $P^{GT} \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in local space. We choose the local space position because it is already normalized within the range $[0, 1]$.
 
 \end{itemize}
 
+We concatenate all the geometric properties. Thus, the ground truth geometric property map can be written as $O^{GT} = \{M^{GT}, N^{GT}, P^{GT}\} \in \mathbb{R}^{7 \times H \times W}$.
+
 \subsection{Network Training}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=1\linewidth]{regressor}
+  \caption{regressor}
+  \label{fig:regressor}
+\end{figure}
+
 \subsubsection{Network architecture}
-We will build the generator following InSituNet proposed by He et al. \cite{he2019insitunet} since our geometric property synthesis problem is similar to their image synthesis problem. We can train a set of networks, each of which is used to learn the mapping from input parameters to one geometric property. Or we can concatenate all the geometric properties and use one single network to learn the mapping. The only difference between these two options is the number of convolution kernels in the last layer. 
+We build the generator following InSituNet proposed by He et al. \cite{he2019insitunet} since our geometric property synthesis problem is similar to their image synthesis problem. Specifically, we train regressor $R_w$ whose goal is to encode input parameters (the isovalue and viewpoint) and generate the corresponding geometric properties (mask, position and normal maps). We use one regressor to learn the mapping to all the geometric properties since sharing network parameters until the last layer can help the generated geometric properties match each other.
 
 \subsubsection{Loss Function}
 We will attempt to estimate the network parameters to minimize a loss function. Our loss function may consist of following terms: (a) differences between ground-truth and predicted geometric properties (normal, position and depth map),  (b) disagreement between ground-truth and predicted foreground masks, (c) large-scale structural difference between the predicted and training maps.
