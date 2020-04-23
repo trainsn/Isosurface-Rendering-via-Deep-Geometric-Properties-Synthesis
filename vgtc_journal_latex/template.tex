@@ -174,7 +174,7 @@ Our work is closely related to InSituNet \cite{he2019insitunet}, which focus on 
 	\label{fig:overview}
 \end{figure*}
 
-As shown in Fig.~\ref{fig:overview}, our deep geometric properties synthesis pipeline consists of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we use volume data available online in large volume collections. Then, given the isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to generate corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a regressor $R_w$ to learn the mapping from input parameters to geometric properties. The loss function is used to penalize the difference between the predicted geometric properties and the ground truth ones. We investigate networks trained with different loss functions and analyze the synthesis quality of these networks on the new input parameters that the network has never seen before during the training phase. Third, we do screen-space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects such as shadow maps.
+As shown in Fig.~\ref{fig:overview}, our deep geometric properties synthesis pipeline consists of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we use volume data available online in large volume collections. Then, given the isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to generate corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a regressor $R$ to learn the mapping from input parameters to geometric properties. The loss function is used to penalize the difference between the predicted geometric properties and the ground truth ones. We investigate networks trained with different loss functions and analyze the synthesis quality of these networks on the new input parameters that the network has never seen before during the training phase. Third, we do screen-space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects such as shadow maps.
 
 \subsection{Input Data}
 Given the isovalue and viewpoint, we implement volumetric ray-casting to get the corresponding geometric properties of an isosurface. We let the ray from the viewpoint advance through the volume until reaching a sample whose intensity is greater than or equal to the threshold value, meaning that we hit the isosurface. Once we find a point belonging to the isosurface, instead of directly applying an illumination model to perform shading, we use the geometry pass in deferred shading \cite{deering1988triangle} to store all kinds of geometric properties in a collection of textures called the G-buffer. In our study, these geometric properties are maps of size $ H \times W $, including:
@@ -195,14 +195,14 @@ We concatenate all the geometric properties. Thus, the ground truth geometric pr
 \begin{figure}
   \centering
   \includegraphics[width=1\linewidth]{regressor}
-  \caption{The structure of our regressor $R_w$. First, it encodes the input parameters into a latent vector. Then the latent vector is projected to a small spatial extent convolutional representation with many feature maps. Next, $6$ residual blocks and the following convolution layer convert this high-level representation a $256 \times 256 \times 7$ pixel map. As InSituNet, the hyper-parameter k controls the size of $R_w$. Specifically, it controls the number of convolution kernels in the intermediate layers.}
+  \caption{The structure of our regressor $R$. First, it encodes the input parameters into a latent vector. Then the latent vector is projected to a small spatial extent convolutional representation with many feature maps. Next, $6$ residual blocks and the following convolution layer convert this high-level representation a $256 \times 256 \times 7$ pixel map. As InSituNet, the hyper-parameter k controls the size of $R$. Specifically, it controls the number of convolution kernels in the intermediate layers.}
   \label{fig:regressor}
 \end{figure}
 
 \subsubsection{Network architecture}
-We build the regressor following InSituNet proposed by He et al. \cite{he2019insitunet} since our geometric property synthesis problem is similar to their image synthesis problem. Specifically, we train a regressor $R_w$ whose goal is to encode input parameters (the isovalue and viewpoint) and generate the corresponding geometric properties (mask, position and normal maps). We use one regressor to learn the mapping to all the geometric properties since sharing network parameters until the last layer can help the generated geometric properties match each other.
+We build the regressor following InSituNet proposed by He et al. \cite{he2019insitunet} since our geometric property synthesis problem is similar to their image synthesis problem. Specifically, we train a regressor $R$ whose goal is to encode input parameters (the isovalue and viewpoint) and generate the corresponding geometric properties (mask, position and normal maps). We use one regressor to learn the mapping to all the geometric properties since sharing network parameters until the last layer can help the generated geometric properties match each other.
 
-The structure of the regressor is illustrated in Fig.~\ref{fig:regressor}. The modifications we have performed are concerning the input and output, the other parts of the network are kept unchanged. It takes the isovalue and viewpoint as inputs and outputs a mask map $M^{est}$, a normal map $N^{est}$, and a position map $P^{est}$. The network first separately encodes the two types of input parameters into two latent vectors. Then it concatenates the two latent vectors and encodes them into a new latent vector by another fully connected layer. Second, the latent vector is projected to a small spatial extent convolution representation with many feature maps. What the network do next is super-resolution. The feature map comes through $6$ residual blocks, each of which performs a $2 \times$ super-resolution. For each residual block, it first upsamples the input feature map by nearest neighbor upsampling, then the upsampled feature map is fed into two convolution layers with kernel $3 \times 3$. The residual network relies on the upsampling and $1 \times 1$ convolution in the skip connection whenever the resolution or number of channels need to change. In the last convolution layer, there are 7 convolution kernels, each of which is responsible for generating one output channel. In all layers, the activation functions in the regressor are rectified linear unit (ReLU) except for the output layer, which instead uses a tanh to ensure all the channels have pixels in the range $[-1, 1]$.
+The structure of the regressor is illustrated in Fig.~\ref{fig:regressor}. The modifications we have performed are concerning the input and output, the other parts of the network are kept unchanged. It takes the isovalue and viewpoint as inputs and outputs a mask map $M^{est}$, a normal map $N^{est}$, and a position map $P^{est}$. The network first separately encodes the two types of input parameters into two latent vectors. Then it concatenates the two latent vectors and encodes them into a new latent vector by another fully connected layer. Second, the latent vector is projected to a small spatial extent convolution representation with many feature maps. What the network do next is super-resolution. The feature map comes through $6$ residual blocks, each of which performs a $2 \times$ super-resolution. For each residual block, it first upsamples the input feature map by nearest neighbor upsampling, then the upsampled feature map is fed into two convolution layers with kernel $3 \times 3$. The residual network relies on the upsampling and $1 \times 1$ convolution in the skip connection whenever the resolution or number of channels need to change. In the last convolution layer, there are 7 convolution kernels, each of which is responsible for generating one output channel. In all layers, the activation functions in the regressor are rectified linear unit (ReLU) except for the output layer, which instead is a tanh to ensure all the channels have pixels in the range $[-1, 1]$.
 As InSituNet, we also introduce a hyper-parameter $k$ in the network structure to control the network learning capacity by changing the number of convolution kernels in the intermediate layers. Since the geometric properties give much richer information than visualization images, in our experiment, the demand for the network learning capacity is higher, i.e., the hyper-parameter $k$ is bigger than the one used in InSituNet. 
 
 \subsubsection{Loss Function}
@@ -213,12 +213,10 @@ We describe the loss function used during training the network. The loss functio
 
 For the first two terms, we consider the per-pixel differences between the synthesized normals and positions. Specifically, $l_1$ loss is employed for both normals and positions. The normal and position losses are only  calculated for pixels marked as foreground in the ground-truth, while other areas that are masked out do not contribute to the loss: 
 
-\begin{equation}\nonumber
-\begin{aligned}
-L_{N} = (\|N^{est} - N^{GT}\|_1) M^{GT} \\ 
-L_{P} = (\|P^{est} - P^{GT}\|_1) M^{GT}
-\end{aligned}
-\end{equation}
+\begin{alignat}{2}
+L_{N} = (\|N^{est} - N^{GT}\|_1) M^{GT}, \\ 
+L_{P} = (\|P^{est} - P^{GT}\|_1) M^{GT}.
+\end{alignat}
 
 Note that other losses with regular vector norms can be used for penalizing depth and normal differences. For example, $l_2$ distance can be another option, but this tends to generate less sharp maps. 
 
@@ -228,7 +226,28 @@ During screen-space shading in the third step of the whole pipeline (see~\ref{su
 We reflect this in the per-pixel normal and position loss, which is a crucial step for simplifying the network's task. Besides, we need to generate a predicted mask map, and we also use $l1$ distance to penalize the difference between predicted and ground-truth mask. 
 
 \paragraph{Adversarial loss}
-We may also penalize overall structural information with the help of adversarial loss. While training a single network, instead of adding adversarial loss term for each map, we will concatenate all the map channels and feed them into the discriminator. We think, to some extent, it can help to make different predicted maps fit each other.   
+Lastly, we can penalize structural differences in the output maps concerning ground-truth through an "adversarial" network. During the regressor $R$ training process, a discriminator network $D$ is trained parallel to differentiate ground truth maps and synthesized maps using the technique of \cite{goodfellow2014generative}. Hopefully, once we finish training, the discriminator and the regressor would reach a Nash equilibrium, and at that time, the regressor can generate maps with finer details. 
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1\linewidth]{discriminator}
+  \caption{The structure of our discriminator $D$. Geometric property maps and input parameters are transformed into two latent vectors separately by residual blocks and fully connected layers. Then they are incorporated to get a likelihood value indicating whether the Geometric property map is ground truth or not. Similar to $R$, a hyper-parameter k controls the network learning capacity. }
+  \label{fig:discriminator}
+\end{figure}
+
+We would like to first introduce the structure of the discriminator $D$, which is shown in Fig.~\ref{fig:discriminator}. Similar to regressor $R$, We build the discriminator $D$ following InSituNet, and the modifications we have performed are concerning the input. The discriminator takes a 7-channel map $O$ that concatenates the mask channel, the 3 normal channels, and the 3 position channels as input. Then the input map goes through several residual blocks and is transformed into a latent vector as its feature representation. Meanwhile, several fully connected layers encode the two types of parameters (the isovalue and viewpoint) into another latent vector. The projection-based condition method \cite{miyato2018cgans} is employed to incorporate the two latent vectors. In all layers, the activation functions are ReLU except for the last layer, which instead is a sigmoid function to get a likelihood value within $[0, 1]$.
+
+The loss function we used is the standard binary cross entropy loss in \cite{goodfellow2014generative}. For the generator (regressor $R$), the loss is:
+
+\begin{equation}
+L_{adv\_R} = -log(D(O^{est})), 
+\end{equation}
+By minimizing which, the generator (regressor $R$) is going to fool the discriminator by generating real-look maps. The adversarial loss for the discriminator is defined as:
+
+\begin{equation}
+L_{adv\_D} = -log(D(O^{GT}))-log(1-D(O^{est})), 
+\end{equation}
+by minimizing which, the discriminator is going to distinguish between real and fake maps. 
 
 \subsection{screen-space shading}
 \label{subsection:shading}
