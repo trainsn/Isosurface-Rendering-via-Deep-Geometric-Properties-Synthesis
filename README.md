@@ -1,2 +1,2 @@
 # Isosurface-Rendering-via-Deep-Geometric-Properties-Synthesis
-Proposal for OSU CSE 5559 
+Report for OSU CSE 5559 

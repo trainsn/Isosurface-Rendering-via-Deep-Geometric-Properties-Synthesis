@@ -56,6 +56,7 @@
 \usepackage{booktabs}                  % only used for the table example
 \usepackage{verbatim}
 \usepackage{amsfonts}
+\usepackage{amsmath}
 %% We encourage the use of mathptmx for consistent usage of times font
 %% throughout the proceedings. However, if you encounter conflicts
 %% with other math-related packages, you may want to disable it.
@@ -173,7 +174,7 @@ Our work is closely related to InSituNet \cite{he2019insitunet}, which focus on 
 	\label{fig:overview}
 \end{figure*}
 
-As shown in Fig.~\ref{fig:overview}, our deep geometric properties synthesis pipeline consists of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we use volume data available online in large volume collections. Then, given the isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to generate corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a regressor $R_w$ to learn the mapping from input parameters to geometric properties. The loss function is used to penalize the difference between the predicted geometric properties and the ground truth geometric properties. We investigate networks trained with different loss functions and analyze the synthesis quality of these networks on the new input parameters that the network has never seen before during the training phase. Third, we will do screen-space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects.
+As shown in Fig.~\ref{fig:overview}, our deep geometric properties synthesis pipeline consists of three major parts. The first part is about the training data generation. Since we do not consider simulation parameters, we use volume data available online in large volume collections. Then, given the isovalue and viewpoint, we can use OpenGL \cite{woo1999opengl} to implement volumetric ray-casting to generate corresponding geometric properties of an isosurface. Second, with the collected pairs between parameters and the corresponding geometric properties, we train a regressor $R_w$ to learn the mapping from input parameters to geometric properties. The loss function is used to penalize the difference between the predicted geometric properties and the ground truth ones. We investigate networks trained with different loss functions and analyze the synthesis quality of these networks on the new input parameters that the network has never seen before during the training phase. Third, we do screen-space shading based on the synthesized geometric properties. We can control the lighting conditions and get some interesting visual effects such as shadow maps.
 
 \subsection{Input Data}
 Given the isovalue and viewpoint, we implement volumetric ray-casting to get the corresponding geometric properties of an isosurface. We let the ray from the viewpoint advance through the volume until reaching a sample whose intensity is greater than or equal to the threshold value, meaning that we hit the isosurface. Once we find a point belonging to the isosurface, instead of directly applying an illumination model to perform shading, we use the geometry pass in deferred shading \cite{deering1988triangle} to store all kinds of geometric properties in a collection of textures called the G-buffer. In our study, these geometric properties are maps of size $ H \times W $, including:
@@ -181,9 +182,9 @@ Given the isovalue and viewpoint, we implement volumetric ray-casting to get the
 \begin{itemize}
 \item $M^{GT} \in [0, 1] ^ {H \times W}$: The mask binary map in which 1 is for foreground and 0 otherwise. After the network training, it will learn a continuous value, and we will use it to blend the final color over the background.  
 
-\item $N^{GT} \in [-1, +1] ^ {3 \times H \times W}$: The normal map with the normal vectors in view space.
+\item $N^{GT} \in [-1, +1] ^ {3 \times H \times W}$: The normal map with the normal vectors in the view space.
 
-\item $P^{GT} \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in local space. We choose the local space position because it is already normalized within the range $[0, 1]$.
+\item $P^{GT} \in [0, 1] ^ {3 \times H \times W}$: The position map with the position vectors in the local space. We choose the local space position because it is already normalized within the range $[0, 1]$.
 
 \end{itemize}
 
@@ -205,18 +206,32 @@ The structure of the regressor is illustrated in Fig.~\ref{fig:regressor}. The m
 As InSituNet, we also introduce a hyper-parameter $k$ in the network structure to control the network learning capacity by changing the number of convolution kernels in the intermediate layers. Since the geometric properties give much richer information than visualization images, in our experiment, the demand for the network learning capacity is higher, i.e., the hyper-parameter $k$ is bigger than the one used in InSituNet. 
 
 \subsubsection{Loss Function}
-We will attempt to estimate the network parameters to minimize a loss function. Our loss function may consist of following terms: (a) differences between ground-truth and predicted geometric properties (normal, position and depth map),  (b) disagreement between ground-truth and predicted foreground masks, (c) large-scale structural difference between the predicted and training maps.
 
-\paragraph{Normal, position and depth loss}
-We will first consider the difference between predicted geometric properties and the ground-truth. There are 3 options for the loss: (i) Spatial loss. We will use $l1$ distance for each geometric property, which will only be calculated for pixels marked as foreground in the ground-truth. $l2$ distance will be another option, but this tended to generate less sharp maps. (ii) Perceptual Loss based on VGGNet \cite{simonyan2014very}. (iii) Adversarial loss. It is trying to measure the difference between two image distributions. We will train a discriminator along with the previously mentioned regressor to differentiate the generated geometric properties with the ground truth. Our discriminator will also be designed following InSituNet \cite{he2019insitunet}. 
+We describe the loss function used during training the network. The loss function is used to penalize the difference between the predicted geometric properties and the ground truth ones, which is very important during the geometric properties synthesis.  Different loss functions exert different effects on the synthesized geometric properties and final visualization images.  For example, in our work, some loss functions focus on the global structure, and others concentrate on preserving shape details. Thus, for different rendering goals, We use a different combination of loss functions below. i.e., Our final loss function is a weighted sum of the loss functions below, and for different rendering goals, the coefficient for each loss function varies.    
+
+\paragraph{Per-pixel Normal and Position Loss}
+
+For the first two terms, we consider the per-pixel differences between the synthesized normals and positions. Specifically, $l_1$ loss is employed for both normals and positions. The normal and position losses are only  calculated for pixels marked as foreground in the ground-truth, while other areas that are masked out do not contribute to the loss: 
+
+\begin{equation}\nonumber
+\begin{aligned}
+L_{N} = (\|N^{est} - N^{GT}\|_1) M^{GT} \\ 
+L_{P} = (\|P^{est} - P^{GT}\|_1) M^{GT}
+\end{aligned}
+\end{equation}
+
+Note that other losses with regular vector norms can be used for penalizing depth and normal differences. For example, $l_2$ distance can be another option, but this tends to generate less sharp maps. 
 
 \paragraph{Mask loss}
-We may use $l1$ distance or cross-entropy function commonly used in classification to penalize the difference between predicted and ground-truth foreground labeling.
+During screen-space shading in the third step of the whole pipeline (see~\ref{subsection:shading}), we only need to calculate the color for foreground regions. Other regions where the mask equals 0 are directly set to the background color. Thus, the network should not care about the position or normal in these areas. 
 
-\paragraph{Large-scale structural difference}
+We reflect this in the per-pixel normal and position loss, which is a crucial step for simplifying the network's task. Besides, we need to generate a predicted mask map, and we also use $l1$ distance to penalize the difference between predicted and ground-truth mask. 
+
+\paragraph{Adversarial loss}
 We may also penalize overall structural information with the help of adversarial loss. While training a single network, instead of adding adversarial loss term for each map, we will concatenate all the map channels and feed them into the discriminator. We think, to some extent, it can help to make different predicted maps fit each other.   
 
 \subsection{screen-space shading}
+\label{subsection:shading}
 We can render a screen-filled quad and calculate the scene's lighting for each fragment using the geometrical information predicted by the regressor. In this way, we can change the lighting conditions to better visualize the feature we are interested in. We can also implement some advanced lighting effects. For example, by comparing the depth map predicted from the lighting viewpoint and camera viewpoint, we can perform shadow mapping \cite{williams1978casting}. Another plan for us is to apply volumetric depth-peeling \cite{zolt2003depthpeel},  rendering interior and exterior isosurfaces and blending them to get volume rendering results. Then we can use different transfer functions to get different visual effects.  
 
 
