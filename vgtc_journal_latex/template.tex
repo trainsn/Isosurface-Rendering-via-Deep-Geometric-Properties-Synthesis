@@ -251,7 +251,31 @@ by minimizing which, the discriminator is going to distinguish between real and 
 
 \subsection{screen-space shading}
 \label{subsection:shading}
-We can render a screen-filled quad and calculate the scene's lighting for each fragment using the geometrical information predicted by the regressor. In this way, we can change the lighting conditions to better visualize the feature we are interested in. We can also implement some advanced lighting effects. For example, by comparing the depth map predicted from the lighting viewpoint and camera viewpoint, we can perform shadow mapping \cite{williams1978casting}. Another plan for us is to apply volumetric depth-peeling \cite{zolt2003depthpeel},  rendering interior and exterior isosurfaces and blending them to get volume rendering results. Then we can use different transfer functions to get different visual effects.  
+After getting predicted geometric properties, we employ screen-space Phong shading as a post-processing step. i.e., we render a screen-filled quad and calculate the scene's lighting for each fragment using the geometrical information predicted by the regressor. For a pixel, given a single spotlight source, the final color is calculated by the formula:
+
+\begin{equation}
+C_{rgb} = Phong(k_a, k_d, k_s, \alpha, P_{light}, \ I_{light}, N^{est}, P^{est}),  \label{equ:phong}　　
+\end{equation}
+with ambient reflection constant $k_a$, diffuse reflection constant $k_d$, specular reflection constant $k_a$,  shininess constant $\alpha$, light source position $P_{light}$, light intensity $I_{light}$, fragment normal $N^{est}$ and fragment position $P^{est}$ as parameters.
+
+The regressor also generates a mask map $M^{est}$ as output. The pixel value in predicted mask map are within the range $[0, 1]$, which shows a smooth fall-off values across edges and allows the network to smooth out edges via
+
+\begin{equation}
+C_{est} = lerp(c_{bg}, C_{rgb}, M^{est}), \label{equ:smooth}
+\end{equation}
+
+with the background color $c_{bg}$ and fragment mask $M^{est}$ as parameters. 
+
+In (\ref{equ:phong})(\ref{equ:smooth}), despite fragment mask, normal and position, all the other parameters can be set by users. Thus, users can change the lighting conditions to better visualize the feature they are interested in.
+
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.8\linewidth]{shadowMap}
+  \caption{shadowMap}
+  \label{fig:shadowMap}
+\end{figure*}
+
+We can also implement some advanced lighting effects. For example, by comparing the depth map predicted from the lighting viewpoint and camera viewpoint, we can perform shadow mapping \cite{williams1978casting}. 
 
 
 \section{Project milestone}
