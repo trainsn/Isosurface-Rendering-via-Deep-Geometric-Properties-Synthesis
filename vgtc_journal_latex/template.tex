@@ -188,7 +188,7 @@ Given the isovalue and viewpoint, we implement volumetric ray-casting to get the
 
 \end{itemize}
 
-We concatenate all the geometric properties. Thus, the ground truth geometric property map can be written as $O^{GT} = \{M^{GT}, N^{GT}, P^{GT}\} \in \mathbb{R}^{7 \times H \times W}$. 
+We concatenate all the geometric properties. Thus, the ground truth geometric property map can be written as $O^{GT} = \{M^{GT}, N^{GT}, P^{GT}\} \in \mathbb{R}^{7 \times H \times W}$. Once the regressor is trained, it can synthesize a new geometric property map $O^{est} = \{M^{est}, N^{est}, P^{est}\} \in \mathbb{R}^{7 \times H \times W}$ from new input parameters. 
 
 \subsection{Network Training}
 
@@ -221,7 +221,7 @@ L_{P} = (\|P^{est} - P^{GT}\|_1) M^{GT}.
 Note that other losses with regular vector norms can be used for penalizing depth and normal differences. For example, $l_2$ distance can be another option, but this tends to generate less sharp maps. 
 
 \paragraph{Mask loss}
-During screen-space shading in the third step of the whole pipeline (see~\ref{subsection:shading}), we only need to calculate the color for foreground regions. Other regions where the mask equals 0 are directly set to the background color. Thus, the network should not care about the position or normal in these areas. 
+During screen-space shading in the third step of the Deep Geometric Properties Synthesis pipeline (see~\ref{subsection:shading}), we only need to calculate the color for foreground regions. Other regions where the mask equals 0 are directly set to the background color. Thus, the network should not care about the position or normal in these areas. 
 
 We reflect this in the per-pixel normal and position loss, which is a crucial step for simplifying the network's task. Besides, we need to generate a predicted mask map, and we also use $l1$ distance to penalize the difference between predicted and ground-truth mask. 
 
@@ -254,14 +254,14 @@ by minimizing which, the discriminator is going to distinguish between real and 
 After getting predicted geometric properties, we employ screen-space Phong shading as a post-processing step. i.e., we render a screen-filled quad and calculate the scene's lighting for each fragment using the geometrical information predicted by the regressor. For a pixel, given a single spotlight source, the final color is calculated by the formula:
 
 \begin{equation}
-C_{rgb} = Phong(k_a, k_d, k_s, \alpha, P_{light}, \ I_{light}, N^{est}, P^{est}),  \label{equ:phong}　　
+C_{rgb} = Phong(k_a, k_d, k_s, \alpha, P_{light},  I_{light}, N^{est}, P^{est}), \label{equ:phong}
 \end{equation}
 with ambient reflection constant $k_a$, diffuse reflection constant $k_d$, specular reflection constant $k_a$,  shininess constant $\alpha$, light source position $P_{light}$, light intensity $I_{light}$, fragment normal $N^{est}$ and fragment position $P^{est}$ as parameters.
 
 The regressor also generates a mask map $M^{est}$ as output. The pixel value in predicted mask map are within the range $[0, 1]$, which shows a smooth fall-off values across edges and allows the network to smooth out edges via
 
 \begin{equation}
-C_{est} = lerp(c_{bg}, C_{rgb}, M^{est}), \label{equ:smooth}
+C^{est} = lerp(c_{bg}, C_{rgb}, M^{est}), \label{equ:smooth}
 \end{equation}
 
 with the background color $c_{bg}$ and fragment mask $M^{est}$ as parameters. 
@@ -275,20 +275,31 @@ In (\ref{equ:phong})(\ref{equ:smooth}), despite fragment mask, normal and positi
   \label{fig:shadowMap}
 \end{figure*}
 
-We can also implement some advanced lighting effects. For example, by comparing the depth map predicted from the lighting viewpoint and camera viewpoint, we can perform shadow mapping \cite{williams1978casting}. 
+We also employ some advanced lighting effects to add realism to the isosurface rendering scene. For example, Shadows are a result of the absence of light due to occlusion. With shadows, it would become much more apparent how different parts of the isosurface relate to each other.
+We generate visualizations images with shadows with the help of the shadow mapping \cite{williams1978casting} technique, and the pipeline is illustrated in Fig.~\ref{fig:shadowMap}. To render an image with shadows, besides the geometric properties needed in the regular deferred shading process, we also need geometric properties from the light's perspective. Generally speaking, to get geometric properties from the light's perspective, we need to train a new regressor because the setting of the light's perspective (e.g., location, projection type, near and far plane) is usually different from the one of camera's perspective. However, we can add some constraints to the light. i.e., if we employ a spotlight whose position is precisely on the viewing sphere and the light points to the volume center, we can simply use the trained regressor to predict the geometric properties needed for the shadow map generation. That is why in Fig.~\ref{fig:shadowMap}, we use the same trained regressor for both the light viewpoint and camera viewpoint. The shadow map stores the closest depth as seen from the light's perspective, which is obtained from the predicted mask and local space position after processing some transformations: 
 
+\begin{equation}
+\begin{aligned}
+P_{l, lightSpace}^{est} = M_{LightProjection} \times M_{LightView} \times M_{Model} \times P_l^{est}, \\
+D_{l, lightSpace}^{est} = P_{l, lightSpace}^{est}.z / P_{l, lightSpace}^{est}.w, \\
+S_{l}^{est} = lerp(1.0, D_{l, lightSpace}^{est}, M_{l}^{est}). 
+\label{equ:shadowMap}
+\end{aligned}
+\end{equation}
+In the formula above, $P_{l, lightSpace}^{est}$ and $M_{l}^{est}$ are directly predicted from the trained regressor given the isovalue and light viewpoint. $ M_{Model}$ is a matrix which transforms the local space position to world space position. $M_{LightView}$ and $ M_{LightProjection}$ are light space transformation matrices. $P_{l, lightSpace}^{est}$ is the 4-dim light space position, and we get the depth from from the light's perspective $D_{l, lightSpace}^{est}$ simply by dividing the $z$ component by the $w$ component. The final shadow map is obtained by masking out areas with help of $M_{l}^{est}$.      
 
-\section{Project milestone}
+The next step is to check for every fragment, whethter it is in shadow or not. 
 
-Here, we decompose our projects into several tasks and provide a draft for how these tasks are scheduled before the deadline.
-
-\begin{itemize}
-\item Ray casting based training data generation: Done
-\item Train networks and tune the hyper-parameters based on isosurface rendering results: In progress, by 4/7.
-\item Finish shadow mapping and depth-peeling for volume rendering: by 4/7
-\item Write the final paper and prepare the presentation: by 4/21. 
-
-\end{itemize}
+\begin{equation}
+\begin{aligned}
+P_{lightSpace}^{est} = M_{LightProjection} \times M_{LightView} \times M_{Model} \times P^{est}, \\
+projCoords = P_{lightSpace}^{est}.xyz / P_{lightSpace}^{est}.w, \\ 
+closetDepth = texture(S_{l}^{est}, projCoords.xy), \\
+currentDepth = projCoords.z, \\
+shadow = currentDepth > closestDepth.
+\end{aligned}
+\end{equation}
+In the formula above, $P^{est}$ is directly predicted from the trained regressor given the isovalue and camera viewpoint. $P_{lightSpace}^{est}$ is the 4-dim light space position, and similar to \ref{equ:shadowMap}, we transform the Homogeneous coordinate to a Cartesian Coordinate by doing perspective divide. We use $projCoords$ to sample $S_{l}^{est}$, which gives us the closest depth from the light's point of view. The current depth at this fragment from the light's perspective is obtained by retrieving $projCoords.z$. The actual comparison is then simply a check whether $currentDepth$ is higher than $closestDepth$, and if so, the fragment is in shadow, and it would not get the contribution from diffuse and specular light. 
 
 %\bibliographystyle{abbrv}
 \bibliographystyle{abbrv-doi}
