@@ -346,7 +346,9 @@ initialization \cite{saxe2013exact} and apply Adam optimizer \cite{kingma2014ada
 
 
 \section{Conclusion}
+In this work, we propose a Deep Geometric Properties Synthesis method for Isosurface Rendering on top of InSituNet. The trained regressor can generate isosurface rendering images under a single headlight with much better quality than the baseline. And to some extent, we solve the problem in InSitu that it only allows users to switch among several predefined visual mappings by supporting random lighting conditions and shadow effects. 
 
+In the future, we would like to actually run the simulation and apply our method to the simulation data. We would also implement the depth peeling rendering technique to blend different isosurfaces and get volume rendering results that support the change of transfer functions. We also plan to try more loss functions such as Perceptual losses based on the pre-trained VGG network \cite{gatys2016image} to further improve our generation results. 
 
 %\bibliographystyle{abbrv}
 \bibliographystyle{abbrv-doi}
