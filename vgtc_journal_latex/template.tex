@@ -209,6 +209,7 @@ We concatenate all the geometric properties. Thus, the ground truth geometric pr
 \end{figure}
 
 \subsubsection{Network architecture}
+\label{subsection:architecture}
 We build the regressor following InSituNet proposed by He et al. \cite{he2019insitunet} since our geometric property synthesis problem is similar to their image synthesis problem. Specifically, we train a regressor $R$ whose goal is to encode input parameters (the isovalue and viewpoint) and generate the corresponding geometric properties (mask, position and normal maps). We use one regressor to learn the mapping to all the geometric properties since sharing network parameters until the last layer can help the generated geometric properties match each other.
 
 The structure of the regressor is illustrated in Fig.~\ref{fig:regressor}. The modifications we have performed are concerning the input and output, the other parts of the network are kept unchanged. It takes the isovalue and viewpoint as inputs and outputs a mask map $M^{est}$, a normal map $N^{est}$, and a position map $P^{est}$. The network first separately encodes the two types of input parameters into two latent vectors. Then it concatenates the two latent vectors and encodes them into a new latent vector by another fully connected layer. Second, the latent vector is projected to a small spatial extent convolution representation with many feature maps. What the network do next is super-resolution. The feature map comes through $6$ residual blocks, each of which performs a $2 \times$ super-resolution. For each residual block, it first upsamples the input feature map by nearest neighbor upsampling, then the upsampled feature map is fed into two convolution layers with kernel $3 \times 3$. The residual network relies on the upsampling and $1 \times 1$ convolution in the skip connection whenever the resolution or number of channels need to change. In the last convolution layer, there are 7 convolution kernels, each of which is responsible for generating one output channel. In all layers, the activation functions in the regressor are rectified linear unit (ReLU) except for the output layer, which instead is a tanh to ensure all the channels have pixels in the range $[-1, 1]$.
@@ -406,9 +407,10 @@ For the "GAN" network, we evaluate the influence of the weight $\lambda$ using t
 \end{table}
 
 \subsubsection{network architectures}
-For the "GAN" network, we evaluate different network architectures  
+For the "GAN" network, we evaluate different network architectures using the rendered images under light mode one. As mentioned in Section \ref{subsection:architecture}, a hyperparameter $k$ controls the network's learning capacity by changing the number of convolution kernels in the intermediate layers. In this experiment, we evaluated four k values: 64, 80, 96, and 112. Table \ref{table:architecture} reports the quantitative evaluation results. Increasing $k$ has little effect on PSNR and SSIM, but would constantly improve the performance on EMD and FID. Note that $k=112$ may not give us the best results because we can keep improving $k$. But due to the GPU memory limit, keep increasing $k$ would decrease the batch size during the training, and our training speed would dramatically decrease. 
+
 \begin{table}
-\caption{Quantitative evaluation of our method trained with different  }
+\caption{Quantitative evaluation of different network architectures controlled by $k$.}
     \centering
     \begin{tabular}{l|l|l|l|l}
          & PSNR & SSIM & EMD & FID \\  \hline
